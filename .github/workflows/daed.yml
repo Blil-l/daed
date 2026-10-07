@@ -16,9 +16,10 @@ jobs:
 
       - name: Setup ImmortalWrt SDK for aarch64_cortex-a53
         run: |
-          # 使用 ImmortalWrt 快照版 SDK，它对 ipq60xx (aarch64_cortex-a53) 支持更好
-          SDK_URL="https://downloads.immortalwrt.org/snapshots/targets/qualcommax/ipq60xx/immortalwrt-sdk-qualcommax-ipq60xx_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-          wget -q "$SDK_URL" -O sdk.tar.zst
+          BASE="https://downloads.immortalwrt.org/snapshots/targets/qualcommax/ipq60xx"
+          SDK_FILE=$(wget -qO- "$BASE/" | grep -o 'immortalwrt-sdk-[^"]*Linux-x86_64.tar.zst' | head -n1)
+          echo "Using SDK: $SDK_FILE"
+          wget -q "$BASE/$SDK_FILE" -O sdk.tar.zst
           tar --zstd -xf sdk.tar.zst
           mv immortalwrt-sdk-* sdk
 
