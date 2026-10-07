@@ -4,17 +4,19 @@ PKG_NAME:=daed
 PKG_VERSION:=2.1.1
 PKG_RELEASE:=1
 
+# 👇 修正：直接下载 dae-wing 源码，彻底绕过 OpenWrt git archive 不包含子模块的限制
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/Blil-l/daed.git
-PKG_SOURCE_VERSION:=v$(PKG_VERSION)
-PKG_SOURCE_SUBMODULES:=wing
+PKG_SOURCE_URL:=https://github.com/daeuniverse/dae-wing.git
+# 使用 daed v2.1.1 标签所指向的 wing 子模块的具体 commit hash
+PKG_SOURCE_VERSION:=dc503088945812c11235b35362d2bfa1a4c3bdf0
 PKG_MIRROR_HASH:=skip
 
 PKG_LICENSE:=AGPL-3.0-only MIT
-PKG_LICENSE_FILES:=LICENSE wing/LICENSE
+PKG_LICENSE_FILES:=LICENSE
 PKG_MAINTAINER:=Blil-l
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)/wing
+# 👇 修正：因为直接下载了 wing 源码，构建目录即为解压后的根目录，不再需要 /wing 后缀
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_BUILD_DEPENDS:=golang/host bpf-headers
 PKG_BUILD_PARALLEL:=1
 PKG_BUILD_FLAGS:=no-mips16
@@ -22,8 +24,8 @@ PKG_BUILD_FLAGS:=no-mips16
 GO_PKG:=github.com/daeuniverse/dae-wing
 GO_PKG_TAGS:=embedallowed,trace
 GO_PKG_LDFLAGS:= \
-    -X '$(GO_PKG)/db.AppDescription=$(PKG_NAME) is a integration solution of dae, API and UI.'
-GO_PKG_LDFLAGS_X= \
+	-X '$(GO_PKG)/db.AppDescription=$(PKG_NAME) is a integration solution of dae, API and UI.'
+GO_PKG_LDFLAGS_X:= \
 	$(GO_PKG)/db.AppName=$(PKG_NAME) \
 	$(GO_PKG)/db.AppVersion=$(PKG_VERSION)
 
@@ -46,8 +48,8 @@ define Package/daed/description
 endef
 
 define Package/daed/conffiles
-  /etc/daed/wing.db
-  /etc/config/daed
+/etc/daed/wing.db
+/etc/config/daed
 endef
 
 define Build/Compile
@@ -56,7 +58,11 @@ endef
 
 define Package/daed/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(GO_PKG_BUILD_BIN_DIR)/daed $(1)/usr/bin/
+	# 注意：Go 默认编译出的二进制文件名可能与仓库名一致 (dae-wing)。
+	# 这里我们在安装时将其重命名为 daed，以匹配原有的启动脚本和预期。
+	# 如果编译输出已经是 daed，请将其改回 $(GO_PKG_BUILD_BIN_DIR)/daed
+	$(INSTALL_BIN) $(GO_PKG_BUILD_BIN_DIR)/dae-wing $(1)/usr/bin/daed
+	
 	$(INSTALL_DIR) $(1)/etc/daed
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DIR) $(1)/etc/init.d
