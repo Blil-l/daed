@@ -22,8 +22,11 @@ start_service() {
         return 0
     }
 
-    # 启动前清理残留状态（设置标记为 pre-start）
-    DAED_GUARD_CLEANUP=start daed_cleanup_runtime
+    # 启动前清理残留状态；如果探测到已有 daed 实例在运行，拒绝启动
+    if ! DAED_GUARD_CLEANUP=start daed_cleanup_runtime; then
+        logger -t daed-init "pre-start cleanup refused (another daed instance may be running); skip start"
+        return 1
+    fi
 
     procd_open_instance
     procd_set_param command $PROG run --config $CONF --listen "$listen_addr"
