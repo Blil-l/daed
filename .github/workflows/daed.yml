@@ -48,4 +48,4 @@ jobs:
         with:
           name: daed-aarch64-universal
           # 产物路径可能因 SDK 结构而异，通常是 base 或 packages 目录
-          path: sdk/bin/packages/aarch64_cortex-a53/base/daed*.apk
+          path: sdk/bin/packages/**/daed*.apk
