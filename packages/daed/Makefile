@@ -24,8 +24,8 @@ GO_PKG_TAGS:=embedallowed,trace
 GO_PKG_LDFLAGS:= \
     -X '$(GO_PKG)/db.AppDescription=$(PKG_NAME) is a integration solution of dae, API and UI.'
 GO_PKG_LDFLAGS_X= \
-    $(GO_PKG)/db.AppName=$(PKG_NAME) \
-    $(GO_PKG)/db.AppVersion=$(PKG_VERSION)
+	$(GO_PKG)/db.AppName=$(PKG_NAME) \
+	$(GO_PKG)/db.AppVersion=$(PKG_VERSION)
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/bpf.mk
@@ -64,10 +64,10 @@ define Build/Compile
 endef
 
 define Package/daed/install
-  $(INSTALL_DIR) $(1)/usr/bin
-  $(INSTALL_BIN) $(PKG_BUILD_DIR)/wing/daed $(1)/usr/bin/
-  $(INSTALL_DIR) $(1)/etc/daed
-  $(INSTALL_DIR) $(1)/etc/config
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/wing/daed $(1)/usr/bin/
+	$(INSTALL_DIR) $(1)/etc/daed
+	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/daed.init $(1)/etc/init.d/daed
 	$(INSTALL_BIN) ./files/daed-cleanup.sh $(1)/usr/bin/daed-cleanup.sh
