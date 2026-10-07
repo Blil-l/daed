@@ -53,14 +53,14 @@ define Build/Compile
 endef
 
 define Package/daed/install
-  $(INSTALL_DIR) $(1)/usr/bin
-  $(INSTALL_BIN) $(PKG_BUILD_DIR)/daed $(1)/usr/bin/
-  $(INSTALL_DIR) $(1)/etc/daed
-  $(INSTALL_DIR) $(1)/etc/config
-  $(INSTALL_DIR) $(1)/etc/init.d
-  $(INSTALL_BIN) ./files/daed.init $(1)/etc/init.d/daed
-  $(INSTALL_BIN) ./files/daed-cleanup.sh $(1)/usr/bin/daed-cleanup.sh
-  $(INSTALL_CONF) ./files/daed.config $(1)/etc/config/daed
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/daed $(1)/usr/bin/
+	$(INSTALL_DIR) $(1)/etc/daed
+	$(INSTALL_DIR) $(1)/etc/config
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/daed.init $(1)/etc/init.d/daed
+	$(INSTALL_BIN) ./files/daed-cleanup.sh $(1)/usr/bin/daed-cleanup.sh
+	$(INSTALL_CONF) ./files/daed.config $(1)/etc/config/daed
 endef
 
 $(eval $(call BuildPackage,daed))
