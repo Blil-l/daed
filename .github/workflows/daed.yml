@@ -1,69 +1,50 @@
-include $(TOPDIR)/rules.mk
+name: Build Universal daed for aarch64
 
-PKG_NAME:=daed
-PKG_VERSION:=2.1.1
-PKG_RELEASE:=1
+on:
+  workflow_dispatch:
 
-PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/Blil-l/daed.git
-PKG_SOURCE_VERSION:=v$(PKG_VERSION)
-PKG_MIRROR_HASH:=skip
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-PKG_LICENSE:=AGPL-3.0-only MIT
-PKG_MAINTAINER:=Blil-l
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y zstd build-essential libncurses-dev unzip wget
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)/wing
-PKG_BUILD_DEPENDS:=golang/host bpf-headers
-PKG_BUILD_PARALLEL:=1
-PKG_BUILD_FLAGS:=no-mips16
+      - name: Setup ImmortalWrt SDK for aarch64_cortex-a53
+        run: |
+          # 使用 ImmortalWrt 快照版 SDK，它对 ipq60xx (aarch64_cortex-a53) 支持更好
+          SDK_URL="https://downloads.immortalwrt.org/snapshots/targets/qualcommax/ipq60xx/immortalwrt-sdk-qualcommax-ipq60xx_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          wget -q "$SDK_URL" -O sdk.tar.zst
+          tar --zstd -xf sdk.tar.zst
+          mv immortalwrt-sdk-* sdk
 
-GO_PKG:=github.com/daeuniverse/dae-wing
-GO_PKG_TAGS:=embedallowed,trace
-GO_PKG_LDFLAGS:= \
-    -X '$(GO_PKG)/db.AppDescription=$(PKG_NAME) is a integration solution of dae, API and UI.'
-GO_PKG_LDFLAGS_X= \
-    $(GO_PKG)/db.AppName=$(PKG_NAME) \
-    $(GO_PKG)/db.AppVersion=$(PKG_VERSION)
+      - name: Copy package source
+        run: |
+          mkdir -p sdk/package/daed
+          # 假设你的 Makefile 和 files 目录在仓库根目录的 package/daed 下
+          cp -r ./package/daed/* sdk/package/daed/
 
-include $(INCLUDE_DIR)/package.mk
-include $(INCLUDE_DIR)/bpf.mk
-include ../../lang/golang/golang-package.mk
+      - name: Update feeds and build
+        run: |
+          cd sdk
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+          make defconfig
+          # 启用 daed 包
+          echo "CONFIG_PACKAGE_daed=m" >> .config
+          # 确保 SDK 本身支持 BTF（如果尚未默认开启）
+          echo "CONFIG_KERNEL_DEBUG_INFO_BTF=y" >> .config
+          echo "CONFIG_KERNEL_BPF_EVENTS=y" >> .config
+          echo "CONFIG_KERNEL_CGROUP_BPF=y" >> .config
+          make package/daed/compile V=s
 
-define Package/daed
-  SECTION:=net
-  CATEGORY:=Network
-  SUBMENU:=Web Servers/Proxies
-  TITLE:=A Modern Dashboard For dae (Universal Build)
-  # 关键：不强制依赖特定的 kmod 包
-  # 仅声明架构和 BTF 依赖，允许用户通过 vmlinux-btf 满足
-  DEPENDS:=$(GO_ARCH_DEPENDS) $(BPF_DEPENDS) +ca-bundle +vmlinux-btf
-  URL:=https://github.com/daeuniverse/daed
-endef
-
-define Package/daed/description
-  daed is a backend of dae, provides a method to bundle arbitrary frontend, dae
-  and geodata into one binary.
-  This universal build requires the kernel to have BTF support (either native
-  or via the vmlinux-btf package).
-endef
-
-define Package/daed/conffiles
-  /etc/daed/wing.db
-  /etc/config/daed
-endef
-
-define Build/Compile
-  $(call GoPackage/Build/Compile)
-endef
-
-define Package/daed/install
-  $(INSTALL_DIR) $(1)/usr/bin
-  $(INSTALL_BIN) $(PKG_BUILD_DIR)/daed $(1)/usr/bin/
-  $(INSTALL_DIR) $(1)/etc/daed
-  $(INSTALL_DIR) $(1)/etc/config
-  $(INSTALL_DIR) $(1)/etc/init.d
-  $(INSTALL_BIN) ./files/daed.init $(1)/etc/init.d/daed
-  $(INSTALL_CONF) ./files/daed.config $(1)/etc/config/daed
-endef
-
-$(eval $(call BuildPackage,daed))
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: daed-aarch64-universal
+          # 产物路径可能因 SDK 结构而异，通常是 base 或 packages 目录
+          path: sdk/bin/packages/aarch64_cortex-a53/base/daed*.apk
