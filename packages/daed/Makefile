@@ -59,6 +59,7 @@ define Package/daed/install
   $(INSTALL_DIR) $(1)/etc/config
   $(INSTALL_DIR) $(1)/etc/init.d
   $(INSTALL_BIN) ./files/daed.init $(1)/etc/init.d/daed
+  $(INSTALL_BIN) ./files/daed-cleanup.sh $(1)/usr/bin/daed-cleanup.sh
   $(INSTALL_CONF) ./files/daed.config $(1)/etc/config/daed
 endef
 
