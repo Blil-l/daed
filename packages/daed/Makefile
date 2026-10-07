@@ -12,8 +12,9 @@ PKG_MIRROR_HASH:=skip
 PKG_LICENSE:=AGPL-3.0-only MIT
 PKG_MAINTAINER:=Blil-l
 
-# PKG_BUILD_DIR 指向仓库根目录
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+
+GO_PKG_BUILD_DIR:=$(PKG_BUILD_DIR)/wing
 
 PKG_BUILD_DEPENDS:=golang/host bpf-headers
 PKG_BUILD_PARALLEL:=1
@@ -30,15 +31,6 @@ GO_PKG_LDFLAGS_X= \
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/bpf.mk
 include $(TOPDIR)/feeds/packages/lang/golang/golang-package.mk
-
-# 关键：在 Prepare 阶段初始化并更新子模块
-define Build/Prepare
-	$(call Build/Prepare/Default)
-	( \
-		cd $(PKG_BUILD_DIR) ; \
-		git submodule update --init --recursive ; \
-	)
-endef
 
 define Package/daed
   SECTION:=net
@@ -65,7 +57,7 @@ endef
 
 define Package/daed/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/wing/daed $(1)/usr/bin/
+	$(INSTALL_BIN) $(GO_PKG_BUILD_DIR)/daed $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/etc/daed
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DIR) $(1)/etc/init.d
