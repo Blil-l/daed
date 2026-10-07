@@ -10,11 +10,10 @@ PKG_SOURCE_VERSION:=v$(PKG_VERSION)
 PKG_MIRROR_HASH:=skip
 
 PKG_LICENSE:=AGPL-3.0-only MIT
+PKG_LICENSE_FILES:=LICENSE wing/LICENSE
 PKG_MAINTAINER:=Blil-l
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
-
-GO_PKG_BUILD_DIR:=$(PKG_BUILD_DIR)/wing
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)/wing
 
 PKG_BUILD_DEPENDS:=golang/host bpf-headers
 PKG_BUILD_PARALLEL:=1
@@ -57,7 +56,7 @@ endef
 
 define Package/daed/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(GO_PKG_BUILD_DIR)/daed $(1)/usr/bin/
+	$(INSTALL_BIN) $(GO_PKG_BUILD_BIN_DIR)/daed $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/etc/daed
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DIR) $(1)/etc/init.d
