@@ -26,7 +26,7 @@ jobs:
         run: |
           mkdir -p sdk/package/daed
           # 假设你的 Makefile 和 files 目录在仓库根目录的 package/daed 下
-          cp -r ./package/daed/* sdk/package/daed/
+          cp -r ./packages/daed/* sdk/package/daed/
 
       - name: Update feeds and build
         run: |
